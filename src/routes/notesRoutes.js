@@ -16,26 +16,21 @@ import {
   updateNoteSchema,
 } from "../validations/notesValidation.js";
 
-import { authenticate } from "../middleware/authenticate.js";
-
 const router = Router();
 
-// защищаем все маршруты
-router.use(authenticate);
-
-// GET /notes
+// GET /notes - список нотаток с пагинацией, фильтром и поиском
 router.get("/", celebrate(getAllNotesSchema), getAllNotes);
 
-// GET /notes/:noteId
+// GET /notes/:noteId - получить одну нотатку по ID
 router.get("/:noteId", celebrate(noteIdSchema), getNoteById);
 
-// POST /notes
+// POST /notes - создать новую нотатку
 router.post("/", celebrate(createNoteSchema), createNote);
 
-// DELETE /notes/:noteId
+// DELETE /notes/:noteId - удалить нотатку по ID
 router.delete("/:noteId", celebrate(noteIdSchema), deleteNote);
 
-// PATCH /notes/:noteId
+// PATCH /notes/:noteId - обновить существующую нотатку
 router.patch("/:noteId", celebrate(updateNoteSchema), updateNote);
 
 export default router;
