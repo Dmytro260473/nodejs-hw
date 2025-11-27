@@ -1,41 +1,30 @@
-import { Router } from "express";
-import { celebrate } from "celebrate";
-
+import { Router } from 'express';
+import { celebrate } from 'celebrate';
+import { authenticate } from '../middlewares/authenticate.js';
 import {
   getAllNotes,
   getNoteById,
   createNote,
   deleteNote,
   updateNote,
-} from "../controllers/notesController.js";
-
+} from '../controllers/notesController.js';
 import {
   createNoteSchema,
   getAllNotesSchema,
   noteIdSchema,
   updateNoteSchema,
-} from "../validations/notesValidation.js";
-
-import { authenticate } from "../middleware/authenticate.js";
+} from '../validations/notesValidation.js';
 
 const router = Router();
 
-// защищаем все маршруты
-router.use(authenticate);
+// Middleware для захисту всіх маршрутів нотаток
+router.use('/notes', authenticate);
 
-// GET /notes
-router.get("/", celebrate(getAllNotesSchema), getAllNotes);
-
-// GET /notes/:noteId
-router.get("/:noteId", celebrate(noteIdSchema), getNoteById);
-
-// POST /notes
-router.post("/", celebrate(createNoteSchema), createNote);
-
-// DELETE /notes/:noteId
-router.delete("/:noteId", celebrate(noteIdSchema), deleteNote);
-
-// PATCH /notes/:noteId
-router.patch("/:noteId", celebrate(updateNoteSchema), updateNote);
+// Маршрути нотаток
+router.get('/notes', celebrate(getAllNotesSchema), getAllNotes);
+router.get('/notes/:noteId', celebrate(noteIdSchema), getNoteById);
+router.post('/notes', celebrate(createNoteSchema), createNote);
+router.patch('/notes/:noteId', celebrate(updateNoteSchema), updateNote);
+router.delete('/notes/:noteId', celebrate(noteIdSchema), deleteNote);
 
 export default router;

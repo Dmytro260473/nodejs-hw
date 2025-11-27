@@ -1,44 +1,49 @@
-import { Joi, Segments } from 'celebrate';
-import { isValidObjectId } from 'mongoose';
-import { TAGS } from './constants/tags.js';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import 'dotenv/config';
+import cookieParser from 'cookie-parser';
+import { connectMongoDB } from './db/connectMongoDB.js';
+import notesRoutes from './routes/notesRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import { errors } from 'celebrate';
+import { notFoundHandler } from './middleware/notFoundHandler.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { logger } from './middleware/logger.js';
 
-export const getAllNotesSchema = {
-  [Segments.QUERY]: Joi.object({
-    page: Joi.number().integer().min(1).default(1),
-    perPage: Joi.number().integer().min(5).max(20).default(10),
-    tag: Joi.string().valid(...TAGS).optional(),
-    search: Joi.string().trim().allow(""),
-  })
+const app = express();
+const PORT = process.env.PORT ?? 3030;
+
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
+app.use(logger);
+app.use(cors({
+  origin: process.env.FRONTEND_DOMAIN,
+  credentials: true,
+}));
+app.use(helmet());
+
+// Routes
+app.use(authRoutes);
+app.use(notesRoutes);
+app.use(userRoutes);
+
+// Error handlers
+app.use(notFoundHandler);
+app.use(errors());
+app.use(errorHandler);
+
+// Start server
+const startServer = async () => {
+  await connectMongoDB();
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 };
 
-const objectIdValidator = (value, helpers) => {
-  return isValidObjectId(value)
-    ? value
-    : helpers.message("Invalid ID format");
-};
-
-export const noteIdSchema = {
-  [Segments.PARAMS]: Joi.object({
-    noteId: Joi.string().custom(objectIdValidator).required(),
-  })
-};
-
-export const createNoteSchema = {
-  [Segments.BODY]: Joi.object({
-    title: Joi.string().min(1).required(),
-    content: Joi.string().allow(""),
-    tag: Joi.string().valid(...TAGS).optional(),
-  })
-};
-
-export const updateNoteSchema = {
-  [Segments.BODY]: Joi.object({
-    title: Joi.string().min(1),
-    content: Joi.string().allow(""),
-    tag: Joi.string().valid(...TAGS).optional(),
-  }).min(1),
-  
-  [Segments.PARAMS]: Joi.object({
-    noteId: Joi.string().custom(objectIdValidator).required(),
-  })
-};
+startServer().catch((err) => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
+});
