@@ -1,14 +1,18 @@
-import {HttpError} from "http-errors";
+import createHttpError from 'http-errors';
 
 export const errorHandler = (err, req, res, next) => {
-  if (err instanceof HttpError){
-    res.status(err.status).json({
-      message: err.message || err.name,
+  // Если ошибка типа http-errors
+  if (createHttpError.isHttpError(err)) {
+    return res.status(err.status || 500).json({
+      message: err.message || 'Http Error',
     });
-    return
   }
-  const isProd = process.env.NODE_ENV === "production";
-	res.status(500).json({
-		message: isProd ? "Something went wrong. Please, try again!" : err.message,
-	})
-}
+
+  // Для всех остальных ошибок
+  const isProd = process.env.NODE_ENV === 'production';
+  res.status(500).json({
+    message: isProd
+      ? 'Something went wrong. Please, try again!'
+      : err.message || 'Internal server error',
+  });
+};
