@@ -1,7 +1,6 @@
 import { Note } from '../models/note.js';
 import createHttpError from 'http-errors';
 
-// Отримати всі нотатки користувача з пагінацією, пошуком та фільтром по тегу
 export const getAllNotes = async (req, res, next) => {
   try {
     const { page = 1, perPage = 10, tag, search } = req.query;
@@ -38,7 +37,6 @@ export const getAllNotes = async (req, res, next) => {
   }
 };
 
-// Отримати одну нотатку за ID
 export const getNoteById = async (req, res, next) => {
   try {
     const { noteId } = req.params;
@@ -56,7 +54,7 @@ export const getNoteById = async (req, res, next) => {
   }
 };
 
-// Створити нотатку
+
 export const createNote = async (req, res, next) => {
   try {
     const allowedFields = ['title', 'content', 'tags'];
@@ -73,7 +71,7 @@ export const createNote = async (req, res, next) => {
   }
 };
 
-// Оновити нотатку
+
 export const updateNote = async (req, res, next) => {
   try {
     const { noteId } = req.params;
@@ -98,7 +96,6 @@ export const updateNote = async (req, res, next) => {
   }
 };
 
-// Видалити нотатку
 export const deleteNote = async (req, res, next) => {
   try {
     const { noteId } = req.params;
@@ -110,7 +107,7 @@ export const deleteNote = async (req, res, next) => {
 
     if (!noteDeleted) throw createHttpError(404, 'Note not found');
 
-    res.sendStatus(204); // без тіла
+    res.status(200).json(noteDeleted);
   } catch (err) {
     next(err);
   }
