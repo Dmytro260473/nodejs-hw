@@ -4,14 +4,15 @@ import { saveFileToCloudinary } from '../utils/saveFileToCloudinary.js';
 
 export const updateUserAvatar = async (req, res, next) => {
   try {
+    // Перевірка наявності файлу
     if (!req.file) {
-      throw createHttpError(400, 'No file uploaded');
+      throw createHttpError(400, 'No file');
     }
 
-    // Завантаження файлу на Cloudinary
+    // Завантаження файлу у Cloudinary
     const result = await saveFileToCloudinary(req.file.buffer);
 
-    // Оновлення користувача
+    // Оновлення аватара користувача у базі
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { avatar: result.secure_url },
@@ -23,7 +24,7 @@ export const updateUserAvatar = async (req, res, next) => {
     }
 
     res.status(200).json({ url: user.avatar });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 };

@@ -15,35 +15,26 @@ import { logger } from './middleware/logger.js';
 const app = express();
 const PORT = process.env.PORT ?? 3030;
 
-// Middleware
+// --- Middleware ---
 app.use(express.json());
+app.use(cors({ origin: process.env.FRONTEND_DOMAIN, credentials: true })); // Додані credentials для cookie
+app.use(helmet());
 app.use(cookieParser());
 app.use(logger);
-app.use(cors({
-  origin: process.env.FRONTEND_DOMAIN,
-  credentials: true,
-}));
-app.use(helmet());
 
-// Routes
-app.use(authRoutes);
-app.use(notesRoutes);
-app.use(userRoutes);
+// --- Routes ---
+app.use('/auth', authRoutes);
+app.use('/notes', notesRoutes);
+app.use('/users', userRoutes);
 
-// Error handlers
+// --- Error handlers ---
 app.use(notFoundHandler);
-app.use(errors());
+app.use(errors()); // Celebrate errors
 app.use(errorHandler);
 
-// Start server
-const startServer = async () => {
-  await connectMongoDB();
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-};
+// --- Connect DB & start server ---
+await connectMongoDB();
 
-startServer().catch((err) => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
