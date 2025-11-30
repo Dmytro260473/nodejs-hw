@@ -17,15 +17,16 @@ const PORT = process.env.PORT ?? 3030;
 
 // --- Middleware ---
 app.use(express.json());
-app.use(cors({ origin: process.env.FRONTEND_DOMAIN, credentials: true })); // Додані credentials для cookie
+app.use(cors({ origin: process.env.FRONTEND_DOMAIN, credentials: true }));
 app.use(helmet());
 app.use(cookieParser());
 app.use(logger);
 
 // --- Routes ---
-app.use('/auth', authRoutes);
-app.use('/notes', notesRoutes);
-app.use('/users', userRoutes);
+// Використовуємо без префіксів
+app.use(authRoutes);
+app.use(notesRoutes);
+app.use(userRoutes);
 
 // --- Error handlers ---
 app.use(notFoundHandler);
