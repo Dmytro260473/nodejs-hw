@@ -1,30 +1,15 @@
 import { Router } from 'express';
-import { celebrate, errors } from 'celebrate';
-import { getAllNotes, getNoteById, createNote, deleteNote, updateNote } from '../controllers/notesController.js';
-import { createNoteSchema, getAllNotesSchema, noteIdSchema, updateNoteSchema } from '../validations/notesValidation.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { updateUserAvatar } from '../controllers/userController.js';
+import { upload } from "../middleware/multer.js";
 
 const router = Router();
 
-
-router.use(authenticate);
-
-
-router.get('/notes', celebrate(getAllNotesSchema), getAllNotes);
-
-
-router.get('/notes/:noteId', celebrate(noteIdSchema), getNoteById);
-
-
-router.post('/notes', celebrate(createNoteSchema), createNote);
-
-
-router.delete('/notes/:noteId', celebrate(noteIdSchema), deleteNote);
-
-
-router.patch('/notes/:noteId', celebrate(updateNoteSchema), updateNote);
-
-
-router.use(errors());
+router.patch(
+  '/users/me/avatar',
+  authenticate,
+  upload.single("avatar"),
+  updateUserAvatar
+);
 
 export default router;
