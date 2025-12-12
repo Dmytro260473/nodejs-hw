@@ -3,37 +3,32 @@ import createHttpError from 'http-errors';
 
 export const getAllNotes = async (req, res, next) => {
   try {
-    const { page = 1, perPage = 10, tag, search } = req.query;
-    const pageNumber = Number(page) || 1;
-    const perPageNumber = Number(perPage) || 10;
-    const skip = (pageNumber - 1) * perPageNumber;
+    let { page = 1, perPage = 10, tag, search } = req.query;
+
+    page = Number(page) || 1;
+    perPage = Math.min(Number(perPage) || 10, 50); // максимум 50 на сторінку
+    const skip = (page - 1) * perPage;
 
     const notesQuery = Note.find({ userId: req.user._id });
 
-    if (search && search.trim() !== '') {
+    if (search) {
       notesQuery.where({ $text: { $search: search } });
     }
 
     if (tag) {
-      notesQuery.where('tags').in([tag]);
+      notesQuery.where('tag').equals(tag);
     }
 
     const [totalNotes, notes] = await Promise.all([
       notesQuery.clone().countDocuments(),
-      notesQuery.skip(skip).limit(perPageNumber),
+      notesQuery.skip(skip).limit(perPage),
     ]);
 
-    const totalPages = Math.ceil(totalNotes / perPageNumber);
+    const totalPages = Math.ceil(totalNotes / perPage);
 
-    res.status(200).json({
-      page: pageNumber,
-      perPage: perPageNumber,
-      totalNotes,
-      totalPages,
-      notes,
-    });
-  } catch (err) {
-    next(err);
+    res.status(200).json({ page, perPage, totalNotes, totalPages, notes });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -41,58 +36,21 @@ export const getNoteById = async (req, res, next) => {
   try {
     const { noteId } = req.params;
 
-    const note = await Note.findOne({
-      _id: noteId,
-      userId: req.user._id,
-    });
-
+    const note = await Note.findOne({ _id: noteId, userId: req.user._id });
     if (!note) throw createHttpError(404, 'Note not found');
 
     res.status(200).json(note);
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 };
-
 
 export const createNote = async (req, res, next) => {
   try {
-    const allowedFields = ['title', 'content', 'tags'];
-    const newNoteData = { userId: req.user._id };
-
-    allowedFields.forEach(field => {
-      if (req.body[field] !== undefined) newNoteData[field] = req.body[field];
-    });
-
-    const newNote = await Note.create(newNoteData);
+    const newNote = await Note.create({ ...req.body, userId: req.user._id });
     res.status(201).json(newNote);
-  } catch (err) {
-    next(err);
-  }
-};
-
-
-export const updateNote = async (req, res, next) => {
-  try {
-    const { noteId } = req.params;
-
-    const allowedUpdates = ['title', 'content', 'tags'];
-    const updateData = {};
-    allowedUpdates.forEach(field => {
-      if (req.body[field] !== undefined) updateData[field] = req.body[field];
-    });
-
-    const noteUpdated = await Note.findOneAndUpdate(
-      { _id: noteId, userId: req.user._id },
-      updateData,
-      { new: true }
-    );
-
-    if (!noteUpdated) throw createHttpError(404, 'Note not found');
-
-    res.status(200).json(noteUpdated);
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -100,15 +58,29 @@ export const deleteNote = async (req, res, next) => {
   try {
     const { noteId } = req.params;
 
-    const noteDeleted = await Note.findOneAndDelete({
-      _id: noteId,
-      userId: req.user._id,
-    });
+    const deletedNote = await Note.findOneAndDelete({ _id: noteId, userId: req.user._id });
+    if (!deletedNote) throw createHttpError(404, 'Note not found');
 
-    if (!noteDeleted) throw createHttpError(404, 'Note not found');
+    res.status(200).json(deletedNote);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    res.status(200).json(noteDeleted);
-  } catch (err) {
-    next(err);
+export const updateNote = async (req, res, next) => {
+  try {
+    const { noteId } = req.params;
+
+    const updatedNote = await Note.findOneAndUpdate(
+      { _id: noteId, userId: req.user._id },
+      req.body,
+      { new: true }
+    );
+
+    if (!updatedNote) throw createHttpError(404, 'Note not found');
+
+    res.status(200).json(updatedNote);
+  } catch (error) {
+    next(error);
   }
 };

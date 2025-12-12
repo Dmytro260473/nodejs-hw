@@ -10,12 +10,10 @@ const sessionSchema = new Schema(
     accessToken: {
       type: String,
       required: true,
-      index: true, // швидкий пошук по accessToken
     },
     refreshToken: {
       type: String,
       required: true,
-      index: true, // швидкий пошук по refreshToken
     },
     accessTokenValidUntil: {
       type: Date,

@@ -1,18 +1,20 @@
 import { TAGS } from "../constants/tags.js";
 import { model, Schema } from "mongoose";
 
-
-const noteSchema = new Schema({
-    userId: {type: Schema.Types.ObjectId, ref: "User", required: true },
-    title: {type: String, required: true, trim: true},
-    content: {type: String, required: false, trim: true, default: ""},
-    tag: {type: String, required: false, enum:[...TAGS], default: "Todo" }
-
-  },{
+const noteSchema = new Schema(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    title: { type: String, required: true, trim: true },
+    content: { type: String, trim: true, default: "" },
+    tag: { type: String, enum: TAGS, default: "Todo" },
+  },
+  {
     timestamps: true,
     versionKey: false,
-  });
+  }
+);
 
-  noteSchema.index({title: "text", content: "text"});
-  export const Note = model("Note", noteSchema);
+// Індекс для текстового пошуку по title та content
+noteSchema.index({ title: "text", content: "text" });
 
+export const Note = model("Note", noteSchema);

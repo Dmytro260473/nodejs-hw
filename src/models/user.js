@@ -5,7 +5,7 @@ const userSchema = new Schema(
     username: {
       type: String,
       trim: true,
-      required: false,
+      default: null, 
     },
     email: {
       type: String,
@@ -19,7 +19,6 @@ const userSchema = new Schema(
     },
     avatar: {
       type: String,
-      required: false,
       default: "https://ac.goit.global/fullstack/react/default-avatar.jpg",
     },
   },
@@ -29,7 +28,7 @@ const userSchema = new Schema(
   }
 );
 
-// Якщо username не вказано — ставимо email
+
 userSchema.pre("save", function (next) {
   if (!this.username) {
     this.username = this.email;
@@ -37,7 +36,7 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-// В методі toJSON видаляємо пароль перед відправкою
+
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
